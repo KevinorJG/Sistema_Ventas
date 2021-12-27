@@ -25,6 +25,8 @@ public class Principal extends javax.swing.JFrame {
         Calculadora.setLocationRelativeTo(null);
 
     }
+    
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -304,11 +306,13 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_updateButtonActionPerformed
 
     private void aggButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aggButtonActionPerformed
-        // TODO add your handling code here:
-
+    
+        Conexion mysql = new Conexion();
+        Connection cn = mysql.conectar();
+        String sSQL = "INSERT INTO zermat(#,ID,Descripción,Precio/Público,Precio/Asesor)" + "VALUES(?,?,?,?,?)";
+        
         try {
-            Connection BaseData = DriverManager.getConnection("jdbc:mysql://localhost:3307/productos", "root", ""); //Hace la conexion con la base de datos
-            PreparedStatement pst = BaseData.prepareStatement("select * from zermat where Codigo = ?");//Se le da intruccion ah que tabla acceder y cuantos campos seran llenados
+            PreparedStatement pst = cn.prepareStatement(sSQL);
 
             //Manda los datos a sus respectivas columnas
             pst.setString(1, "");
@@ -324,9 +328,14 @@ public class Principal extends javax.swing.JFrame {
             precioPTxFIeld.setText("");
             precioATxField.setText("");
             mensajeLb.setText("Producto Registrado");
+            int n =pst.executeUpdate();
+            if(n>0){
+                JOptionPane.showMessageDialog(null, "Registro correcto", "Ingreso",1);
+                //CargarTabla();
+            }
 
-        } catch (Exception e) {
-            System.err.println("Error de conexión al registro de los datos");
+        } catch (SQLException ex) {
+            System.err.println("Error de conexión al registro de los datos "+ex);
         }
     }//GEN-LAST:event_aggButtonActionPerformed
 
