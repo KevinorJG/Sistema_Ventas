@@ -26,8 +26,7 @@ public class Conexion {
     public Connection conectar() {
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            cx = DriverManager.getConnection("jdbc:mysql://localhost/lista", "root", "");
-            System.out.println("Se conectó");
+            cx = DriverManager.getConnection("jdbc:mysql://localhost/lista", "Kevin", "Kevin2003");
         } catch (ClassNotFoundException | SQLException ex) {
             System.out.println("No se conecto");
             Logger.getLogger(Conexion.class.getName()).log(Level.SEVERE, null, ex);

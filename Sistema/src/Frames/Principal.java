@@ -307,15 +307,17 @@ public class Principal extends javax.swing.JFrame {
 
     private void aggButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aggButtonActionPerformed
     
-        Conexion mysql = new Conexion();
-        Connection cn = mysql.conectar();
-        String sSQL = "INSERT INTO zermat(#,ID,Descripción,Precio/Público,Precio/Asesor)" + "VALUES(?,?,?,?,?)";
+        //Conexion mysql = new Conexion();
+        //Connection cn = mysql.conectar();
+        //String sSQL = "INSERT INTO zermat(#,ID,Descripción,PrecioPúblico,PrecioAsesor) VALUES(?,?,?,?,?)";
         
         try {
-            PreparedStatement pst = cn.prepareStatement(sSQL);
+            //PreparedStatement pst = cn.prepareStatement(sSQL);"
+            Connection cn = DriverManager.getConnection("jdbc:mysql://localhost/lista" , "root", "");
+            PreparedStatement pst = cn.prepareStatement("insert into zermat values(?,?,?,?,?)");
 
             //Manda los datos a sus respectivas columnas
-            pst.setString(1, "");
+            pst.setString(1, "0");
             pst.setString(2, codigoTxField.getText().trim());
             pst.setString(3, descriptionTxField.getText().trim());
             pst.setString(4, precioPTxFIeld.getText().trim());
