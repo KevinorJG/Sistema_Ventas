@@ -4,12 +4,52 @@ import Productos.Producto;
 import java.util.ArrayList;
 import Internal.*;
 import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 public class Principal extends javax.swing.JFrame {
 
-   
+    DefaultTableModel modelo;
+
+    public void Mostrar() {
+        ConexionSQL cn = new ConexionSQL();
+        String extrae = "SELECT #, id, descripcion, precio_publico, precio_asesor FROM Productos";
+        String duplicados = "WITH C AS (SELECT #,id,descripcion,precio_publico,precio_asesor, ROW_NUMBER() OVER (PARTITION BY id,descripcion,precio_publico,precio_asesor ORDER BY #) AS DUPLICADO FROM Productos ) DELETE FROM C WHERE DUPLICADO > 1 SELECT * FROM Productos";
+        PreparedStatement sentencia;
+
+        try {
+            sentencia = cn.Conectar().prepareStatement(duplicados); //Se instancia una conexion de para hacer la consulta
+            ResultSet rs = sentencia.executeQuery();
+
+            modelo = new DefaultTableModel();
+            Tabla.setModel(modelo);
+
+            ResultSetMetaData rsMd = rs.getMetaData();
+            int count = rsMd.getColumnCount();
+
+            modelo.addColumn("#");
+            modelo.addColumn("Código");
+            modelo.addColumn("Descripción");
+            modelo.addColumn("Precio/Público");
+            modelo.addColumn("Precio/Asesor");
+
+            while (rs.next()) {
+                Object[] filas = new Object[count];
+
+                for (int i = 0; i < count; i++) {
+                    filas[i] = rs.getObject(i + 1);
+                }
+                modelo.addRow(filas);
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
     public Principal() {
         initComponents();
 
@@ -24,8 +64,6 @@ public class Principal extends javax.swing.JFrame {
         Calculadora.setLocationRelativeTo(null);
 
     }
-    
-    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -50,11 +88,10 @@ public class Principal extends javax.swing.JFrame {
         suprimirButton = new javax.swing.JButton();
         updateButton = new javax.swing.JButton();
         buscarButton = new javax.swing.JButton();
-        mensajeLb = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
         txtBuscar = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        Tabla = new javax.swing.JTable();
         Clients = new javax.swing.JFrame();
         Calculadora = new javax.swing.JFrame();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -73,10 +110,13 @@ public class Principal extends javax.swing.JFrame {
 
         jLabel2.setText("Descripción:");
 
+        descriptionTxField.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+
         jLabel3.setText("Precio/Público:");
 
         jLabel4.setText("Precio/Asesor:");
 
+        aggButton.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         aggButton.setText("Agregar");
         aggButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -84,6 +124,7 @@ public class Principal extends javax.swing.JFrame {
             }
         });
 
+        suprimirButton.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         suprimirButton.setText("Eliminar");
         suprimirButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -91,6 +132,7 @@ public class Principal extends javax.swing.JFrame {
             }
         });
 
+        updateButton.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         updateButton.setText("Actualizar");
         updateButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -98,6 +140,7 @@ public class Principal extends javax.swing.JFrame {
             }
         });
 
+        buscarButton.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         buscarButton.setText("Buscar");
         buscarButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -105,7 +148,7 @@ public class Principal extends javax.swing.JFrame {
             }
         });
 
-        jTextField1.setText("Ingrese el código:");
+        jLabel5.setText("Ingrese un código:");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -137,23 +180,20 @@ public class Principal extends javax.swing.JFrame {
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(descriptionTxField, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(suprimirButton)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(suprimirButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(buscarButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                     .addGroup(jPanel1Layout.createSequentialGroup()
                                         .addComponent(aggButton)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(buscarButton)
-                                            .addComponent(updateButton)))))
+                                        .addComponent(updateButton))))
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(42, 42, 42)
-                                        .addComponent(mensajeLb, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(18, 18, 18)
-                                        .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addGap(15, 15, 15)
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(0, 12, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -179,18 +219,17 @@ public class Principal extends javax.swing.JFrame {
                             .addComponent(aggButton)
                             .addComponent(updateButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(suprimirButton)))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(suprimirButton)
+                            .addComponent(buscarButton))))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buscarButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(mensajeLb)
-                .addContainerGap(152, Short.MAX_VALUE))
+                    .addComponent(jLabel5))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        Tabla.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null},
                 {null, null, null, null, null},
@@ -209,10 +248,10 @@ public class Principal extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
-        jTable1.setFocusable(false);
-        jTable1.getTableHeader().setResizingAllowed(false);
-        jTable1.getTableHeader().setReorderingAllowed(false);
-        jScrollPane1.setViewportView(jTable1);
+        Tabla.setEnabled(false);
+        Tabla.setFocusable(false);
+        Tabla.getTableHeader().setReorderingAllowed(false);
+        jScrollPane1.setViewportView(Tabla);
 
         javax.swing.GroupLayout ProductsLayout = new javax.swing.GroupLayout(Products.getContentPane());
         Products.getContentPane().setLayout(ProductsLayout);
@@ -222,7 +261,7 @@ public class Principal extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 485, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 577, Short.MAX_VALUE)
                 .addContainerGap())
         );
         ProductsLayout.setVerticalGroup(
@@ -230,10 +269,8 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(ProductsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(ProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(ProductsLayout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 374, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -318,6 +355,7 @@ public class Principal extends javax.swing.JFrame {
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         // TODO add your handling code here:
         Products.setVisible(true);
+        Mostrar();
 
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
@@ -339,37 +377,25 @@ public class Principal extends javax.swing.JFrame {
     private void aggButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aggButtonActionPerformed
 
         ConexionSQL cn = new ConexionSQL();
-        String duplicados = "WITH C AS (SELECT #,id,descripcion,precio_publico,precio_asesor, ROW_NUMBER() OVER (PARTITION BY id,descripcion,precio_publico,precio_asesor ORDER BY #) AS DUPLICADO FROM Productos ) DELETE FROM C WHERE DUPLICADO > 1 SELECT * FROM Productos";
+       
         try {
             cn.Conectar();
             PreparedStatement pst = cn.Conectar().prepareStatement("INSERT INTO Productos VALUES(?,?,?,?)");
-            
-            //Manda los datos a sus respectivas columnas
-            // pst.setString(1, "0");
+
             pst.setString(1, codigoTxField.getText().trim());
             pst.setString(2, descriptionTxField.getText().trim());
             pst.setString(3, precioPTxFIeld.getText().trim());
             pst.setString(4, precioATxField.getText().trim());
             pst.executeUpdate(); //ejecuta la operacion y manda datos
-            
 
             //Limpia la entrada de datos en la interfaz
             codigoTxField.setText("");
             descriptionTxField.setText("");
             precioPTxFIeld.setText("");
             precioATxField.setText("");
-            mensajeLb.setText("Producto Registrado");
 
-            if (mensajeLb.equals("Producto Registrado")) {
-                mensajeLb.setText("");
-            }
-            int n = pst.executeUpdate();
-            PreparedStatement sentencia= cn.Conectar().prepareStatement(duplicados); //Se instancia una conexion de para hacer la consulta
-            ResultSet rs = sentencia.executeQuery();
-            if (n > 0) {
-                JOptionPane.showMessageDialog(null, "Registro correcto", "Ingreso", 1);
-                //CargarTabla();
-            }
+            pst.executeUpdate();
+            Mostrar(); // Hace la llamada al metodo para mostrar los datos en la tabla
 
         } catch (SQLException ex) {
             System.err.println("Error de conexión al registro de los datos " + ex);
@@ -379,13 +405,14 @@ public class Principal extends javax.swing.JFrame {
     private void buscarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buscarButtonActionPerformed
         // TODO add your handling code here:
         ConexionSQL cn = new ConexionSQL();
+        String consulta = "select * from Productos where id=?";
         try {
             cn.Conectar();
-            PreparedStatement pst = cn.Conectar().prepareStatement("insert into zermat values(?,?,?,?,?)");//Se le da intruccion ah que tabla acceder y cuantos campos seran llenados
+            PreparedStatement pst = cn.Conectar().prepareStatement(consulta);//Se le da intruccion ah que tabla acceder y cuantos campos seran llenados
 
             pst.setString(2, txtBuscar.getText().trim());
 
-            ResultSet rs = pst.executeQuery("WITH C AS(SELECT #,id,descripcion,precio_publico,precio_asesor, ROW_NUMBER() OVER (PARTITION BY id,descripcion,precio_publico,precio_asesor ORDER BY #) AS DUPLICADO FROM Productos ) DELETE FROM C WHERE DUPLICADO > 1 SELECT * FROM Productos");
+            ResultSet rs = pst.executeQuery();
 
             if (rs.next()) {
                 codigoTxField.setText(rs.getString("Codigo"));
@@ -445,6 +472,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JFrame Clients;
     private javax.swing.JMenu MenuAsesor;
     private javax.swing.JFrame Products;
+    private javax.swing.JTable Tabla;
     private javax.swing.JButton aggButton;
     private javax.swing.JButton buscarButton;
     private javax.swing.JTextField codigoTxField;
@@ -453,6 +481,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
@@ -460,9 +489,6 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JLabel mensajeLb;
     private javax.swing.JTextField precioATxField;
     private javax.swing.JTextField precioPTxFIeld;
     private javax.swing.JButton suprimirButton;
