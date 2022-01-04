@@ -5,12 +5,11 @@ import java.util.ArrayList;
 import Internal.*;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 public class Principal extends javax.swing.JFrame {
 
-    protected ArrayList<Producto> lista1 = new ArrayList<>();
-    protected ArrayList<Cliente> lista2 = new ArrayList<>();
-
+   
     public Principal() {
         initComponents();
 
@@ -54,6 +53,8 @@ public class Principal extends javax.swing.JFrame {
         mensajeLb = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
         txtBuscar = new javax.swing.JTextField();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         Clients = new javax.swing.JFrame();
         Calculadora = new javax.swing.JFrame();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -189,6 +190,30 @@ public class Principal extends javax.swing.JFrame {
                 .addContainerGap(152, Short.MAX_VALUE))
         );
 
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
+            },
+            new String [] {
+                "#", "Código", "Descripción", "Precio/Público", "Precio/Asesor"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Float.class, java.lang.Float.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jTable1.setFocusable(false);
+        jTable1.getTableHeader().setResizingAllowed(false);
+        jTable1.getTableHeader().setReorderingAllowed(false);
+        jScrollPane1.setViewportView(jTable1);
+
         javax.swing.GroupLayout ProductsLayout = new javax.swing.GroupLayout(Products.getContentPane());
         Products.getContentPane().setLayout(ProductsLayout);
         ProductsLayout.setHorizontalGroup(
@@ -196,13 +221,19 @@ public class Principal extends javax.swing.JFrame {
             .addGroup(ProductsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(509, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 485, Short.MAX_VALUE)
+                .addContainerGap())
         );
         ProductsLayout.setVerticalGroup(
             ProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(ProductsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(ProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(ProductsLayout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 374, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -306,23 +337,21 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_updateButtonActionPerformed
 
     private void aggButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aggButtonActionPerformed
-    
-        //Conexion mysql = new Conexion();
-        //Connection cn = mysql.conectar();
-        //String sSQL = "INSERT INTO zermat(#,ID,Descripción,PrecioPúblico,PrecioAsesor) VALUES(?,?,?,?,?)";
-        
-        try {
-            //PreparedStatement pst = cn.prepareStatement(sSQL);"
-            Connection cn = DriverManager.getConnection("jdbc:mysql://localhost/lista" , "root", "");
-            PreparedStatement pst = cn.prepareStatement("insert into zermat values(?,?,?,?,?)");
 
+        ConexionSQL cn = new ConexionSQL();
+        String duplicados = "WITH C AS (SELECT #,id,descripcion,precio_publico,precio_asesor, ROW_NUMBER() OVER (PARTITION BY id,descripcion,precio_publico,precio_asesor ORDER BY #) AS DUPLICADO FROM Productos ) DELETE FROM C WHERE DUPLICADO > 1 SELECT * FROM Productos";
+        try {
+            cn.Conectar();
+            PreparedStatement pst = cn.Conectar().prepareStatement("INSERT INTO Productos VALUES(?,?,?,?)");
+            
             //Manda los datos a sus respectivas columnas
-            pst.setString(1, "0");
-            pst.setString(2, codigoTxField.getText().trim());
-            pst.setString(3, descriptionTxField.getText().trim());
-            pst.setString(4, precioPTxFIeld.getText().trim());
-            pst.setString(5, precioATxField.getText().trim());
+            // pst.setString(1, "0");
+            pst.setString(1, codigoTxField.getText().trim());
+            pst.setString(2, descriptionTxField.getText().trim());
+            pst.setString(3, precioPTxFIeld.getText().trim());
+            pst.setString(4, precioATxField.getText().trim());
             pst.executeUpdate(); //ejecuta la operacion y manda datos
+            
 
             //Limpia la entrada de datos en la interfaz
             codigoTxField.setText("");
@@ -330,26 +359,33 @@ public class Principal extends javax.swing.JFrame {
             precioPTxFIeld.setText("");
             precioATxField.setText("");
             mensajeLb.setText("Producto Registrado");
-            int n =pst.executeUpdate();
-            if(n>0){
-                JOptionPane.showMessageDialog(null, "Registro correcto", "Ingreso",1);
+
+            if (mensajeLb.equals("Producto Registrado")) {
+                mensajeLb.setText("");
+            }
+            int n = pst.executeUpdate();
+            PreparedStatement sentencia= cn.Conectar().prepareStatement(duplicados); //Se instancia una conexion de para hacer la consulta
+            ResultSet rs = sentencia.executeQuery();
+            if (n > 0) {
+                JOptionPane.showMessageDialog(null, "Registro correcto", "Ingreso", 1);
                 //CargarTabla();
             }
 
         } catch (SQLException ex) {
-            System.err.println("Error de conexión al registro de los datos "+ex);
+            System.err.println("Error de conexión al registro de los datos " + ex);
         }
     }//GEN-LAST:event_aggButtonActionPerformed
 
     private void buscarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buscarButtonActionPerformed
         // TODO add your handling code here:
+        ConexionSQL cn = new ConexionSQL();
         try {
-            Connection BaseData = DriverManager.getConnection("jdbc:mysql://localhost/productos", "root", ""); //Hace la conexion con la base de datos
-            PreparedStatement pst = BaseData.prepareStatement("insert into zermat values(?,?,?,?,?)");//Se le da intruccion ah que tabla acceder y cuantos campos seran llenados
+            cn.Conectar();
+            PreparedStatement pst = cn.Conectar().prepareStatement("insert into zermat values(?,?,?,?,?)");//Se le da intruccion ah que tabla acceder y cuantos campos seran llenados
 
             pst.setString(2, txtBuscar.getText().trim());
 
-            ResultSet rs = pst.executeQuery();
+            ResultSet rs = pst.executeQuery("WITH C AS(SELECT #,id,descripcion,precio_publico,precio_asesor, ROW_NUMBER() OVER (PARTITION BY id,descripcion,precio_publico,precio_asesor ORDER BY #) AS DUPLICADO FROM Productos ) DELETE FROM C WHERE DUPLICADO > 1 SELECT * FROM Productos");
 
             if (rs.next()) {
                 codigoTxField.setText(rs.getString("Codigo"));
@@ -423,6 +459,8 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel mensajeLb;
     private javax.swing.JTextField precioATxField;
