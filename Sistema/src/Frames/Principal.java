@@ -50,6 +50,15 @@ public class Principal extends javax.swing.JFrame {
 
     }
 
+    public void LimpiarEntradas() {
+        //Limpia la entrada de datos en la interfaz
+        codigoTxField.setText("");
+        descriptionTxField.setText("");
+        precioPTxFIeld.setText("");
+        precioATxField.setText("");
+        txtBuscar.setText("");
+    }
+
     public Principal() {
         initComponents();
 
@@ -90,6 +99,7 @@ public class Principal extends javax.swing.JFrame {
         buscarButton = new javax.swing.JButton();
         txtBuscar = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
+        entradas = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         Tabla = new javax.swing.JTable();
         Clients = new javax.swing.JFrame();
@@ -150,6 +160,14 @@ public class Principal extends javax.swing.JFrame {
 
         jLabel5.setText("Ingrese un código:");
 
+        entradas.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        entradas.setText("Limpiar Entradas");
+        entradas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                entradasActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -191,10 +209,13 @@ public class Principal extends javax.swing.JFrame {
                                         .addComponent(updateButton))))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(15, 15, 15)
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 12, Short.MAX_VALUE)))
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(entradas)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(jLabel5)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addGap(0, 40, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -226,7 +247,9 @@ public class Principal extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(35, 35, 35)
+                .addComponent(entradas)
+                .addContainerGap(96, Short.MAX_VALUE))
         );
 
         Tabla.setModel(new javax.swing.table.DefaultTableModel(
@@ -270,7 +293,7 @@ public class Principal extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(ProductsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 387, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -372,14 +395,29 @@ public class Principal extends javax.swing.JFrame {
 
     private void updateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtonActionPerformed
         // TODO add your handling code here:
+        ConexionSQL cn = new ConexionSQL();
+
+        try {
+            PreparedStatement pst = cn.Conectar().prepareStatement("UPDATE Productos SET id=?, descripcion=?, precio_publico=?, precio_asesor=? WHERE #=?");
+
+            pst.setString(1, codigoTxField.getText().trim());
+            pst.setString(2, descriptionTxField.getText().trim());
+            pst.setString(3, precioPTxFIeld.getText().trim());
+            pst.setString(4, precioATxField.getText().trim());
+            pst.setString(5, txtBuscar.getText().trim());
+            pst.executeUpdate();
+            Mostrar();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_updateButtonActionPerformed
 
     private void aggButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aggButtonActionPerformed
 
         ConexionSQL cn = new ConexionSQL();
-       
+
         try {
-            cn.Conectar();
             PreparedStatement pst = cn.Conectar().prepareStatement("INSERT INTO Productos VALUES(?,?,?,?)");
 
             pst.setString(1, codigoTxField.getText().trim());
@@ -388,11 +426,7 @@ public class Principal extends javax.swing.JFrame {
             pst.setString(4, precioATxField.getText().trim());
             pst.executeUpdate(); //ejecuta la operacion y manda datos
 
-            //Limpia la entrada de datos en la interfaz
-            codigoTxField.setText("");
-            descriptionTxField.setText("");
-            precioPTxFIeld.setText("");
-            precioATxField.setText("");
+            LimpiarEntradas();
 
             pst.executeUpdate();
             Mostrar(); // Hace la llamada al metodo para mostrar los datos en la tabla
@@ -405,20 +439,18 @@ public class Principal extends javax.swing.JFrame {
     private void buscarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buscarButtonActionPerformed
         // TODO add your handling code here:
         ConexionSQL cn = new ConexionSQL();
-        String consulta = "select * from Productos where id=?";
+        String consulta = "select * from Productos where #=?";
+
         try {
-            cn.Conectar();
             PreparedStatement pst = cn.Conectar().prepareStatement(consulta);//Se le da intruccion ah que tabla acceder y cuantos campos seran llenados
-
-            pst.setString(2, txtBuscar.getText().trim());
-
+            pst.setString(1, txtBuscar.getText().trim());
             ResultSet rs = pst.executeQuery();
 
             if (rs.next()) {
-                codigoTxField.setText(rs.getString("Codigo"));
-                descriptionTxField.setText(rs.getString("Descripción"));
-                precioPTxFIeld.setText(rs.getString("PrecioPublico"));
-                precioATxField.setText(rs.getString("PrecioAsesor"));
+                codigoTxField.setText(rs.getString("id"));
+                descriptionTxField.setText(rs.getString("descripcion"));
+                precioPTxFIeld.setText(rs.getString("precio_publico"));
+                precioATxField.setText(rs.getString("precio_asesor"));
             } else {
                 JOptionPane.showMessageDialog(null, "Producto no registrado");
             }
@@ -430,7 +462,29 @@ public class Principal extends javax.swing.JFrame {
 
     private void suprimirButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_suprimirButtonActionPerformed
         // TODO add your handling code here:
+        ConexionSQL cn = new ConexionSQL();
+
+        try {
+            PreparedStatement pst = cn.Conectar().prepareStatement("DELETE FROM Productos WHERE #=?");
+            pst.setString(1, txtBuscar.getText().trim());
+            LimpiarEntradas();
+            int res = pst.executeUpdate();
+
+            if (res > 0) {
+                System.out.println("Registro Eliminado Exitosamente");
+            } else {
+                System.out.println("Error al eliminar");
+            }
+            Mostrar();
+        } catch (SQLException ex) {
+            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_suprimirButtonActionPerformed
+
+    private void entradasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_entradasActionPerformed
+        // TODO add your handling code here:
+        LimpiarEntradas();
+    }//GEN-LAST:event_entradasActionPerformed
 
     /**
      * @param args the command line arguments
@@ -477,6 +531,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JButton buscarButton;
     private javax.swing.JTextField codigoTxField;
     private javax.swing.JTextField descriptionTxField;
+    private javax.swing.JButton entradas;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
